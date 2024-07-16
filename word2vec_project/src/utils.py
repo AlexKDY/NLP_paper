@@ -11,14 +11,14 @@ class DataReader:
     def __init__(self, inputFile, min_cnt):
 
         self.negatives = []
-        self.discards = dict()
+        self.discards = []
         self.negpos = 0
 
         self.word2id = dict()
         self.id2word = dict()
         self.word_freq = dict()
         self.token_cnt = 0
-        self.sentece_cnt = 0
+        self.sentence_cnt = 0
 
         self.inputFile = inputFile
         self.preprocess(min_cnt)
@@ -51,12 +51,12 @@ class DataReader:
 
     def subsampling(self):
         t = 1e-5
-        f = np.array(list(self.word_frequency.values())) / self.token_cnt
+        f = np.array(list(self.word_freq.values())) / self.token_cnt
         self.discards = 1 - np.sqrt(t/f)
 
 
     def negativesampling(self):
-        freq_list = np.array(list(np.array(self.word_freq).values())) ** 0.75
+        freq_list = np.array(list(self.word_freq.values())) ** 0.75
         ratio_list = freq_list / np.sum(freq_list)
         cnt_list = np.round(ratio_list *  DataReader.NEGATIVE_TABLE_SIZE)
         for wid, c in enumerate(cnt_list):
@@ -97,7 +97,7 @@ class skipGramDataset(Dataset):
                 words = line.split()
 
                 if len(words) > 1:
-                    sampled_ids = [self.data.word2id[word] for word in words if word in self.data.word2id.keys() and np.random.rand() > self.data.discards[self.word2id[word]]]
+                    sampled_ids = [self.data.word2id[word] for word in words if word in self.data.word2id.keys() and np.random.rand() > self.data.discards[self.data.word2id[word]]]
                 
                     range = np.random.randint(1, self.context_size)                        
                     
