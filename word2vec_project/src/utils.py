@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from collections import Counter
 
 np.random.seed(1)
 
@@ -23,8 +22,8 @@ class DataReader:
 
         self.inputFile = inputFile
         self.preprocess(min_cnt)
-        self.negativeSampling()
-        self.subSampling()
+        self.negativesampling()
+        self.subsampling()
     
     def preprocess(self, min_cnt):
         
@@ -50,13 +49,13 @@ class DataReader:
             wid += 1
         
 
-    def subSampling(self):
+    def subsampling(self):
         t = 1e-5
         f = np.array(list(self.word_frequency.values())) / self.token_cnt
         self.discards = 1 - np.sqrt(t/f)
 
 
-    def negativeSampling(self):
+    def negativesampling(self):
         freq_list = np.array(list(np.array(self.word_freq).values())) ** 0.75
         ratio_list = freq_list / np.sum(freq_list)
         cnt_list = np.round(ratio_list *  DataReader.NEGATIVE_TABLE_SIZE)
@@ -65,7 +64,7 @@ class DataReader:
         self.negatives = np.array(self.negatives)
         np.random.shuffle(self.negatives)
 
-    def getNegativeSample(self, target, size):
+    def get_negative(self, target, size):
         neg_sample = self.negatives[self.negpos:self.negpos + size]
         self.negpos = (self.negpos + size) % len(self.negatives)
         neg_sample = [neg for neg in neg_sample if neg not in target]
@@ -102,7 +101,7 @@ class skipGramDataset(Dataset):
                 
                     range = np.random.randint(1, self.context_size)                        
                     
-                    return [(center, context, self.data.getNegativeSample([center, context], 5)) for c_id, center in enumerate(sampled_ids)
+                    return [(center, context, self.data.get_negative([center, context], 5)) for c_id, center in enumerate(sampled_ids)
                             for context in sampled_ids[max(0, c_id - range): min(c_id + range, len(sampled_ids))] if center != context]
                 
     @staticmethod
