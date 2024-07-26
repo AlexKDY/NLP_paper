@@ -100,14 +100,14 @@ class Seq2SeqDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        eng_sentence, fra_sentence = self.data[idx]
-        eng_indices = [self.SOS_token] + [self.word2index.get(word, self.word2index["<unk>"]) for word in eng_sentence.split()] + [self.EOS_token]
-        fra_indices = [self.SOS_token] + [self.word2index.get(word, self.word2index["<unk>"]) for word in fra_sentence.split()] + [self.EOS_token]
+        src_sentence, trg_sentence = self.data[idx]
+        src_indices = [self.word2index.get(word, self.word2index["<unk>"]) for word in src_sentence.split()]
+        trg_indices = [self.SOS_token] + [self.word2index.get(word, self.word2index["<unk>"]) for word in trg_sentence.split()] + [self.EOS_token]
         
-        eng_indices = eng_indices[:self.max_len]  # 길이 제한
-        fra_indices = fra_indices[:self.max_len]  # 길이 제한
+        src_indices = src_indices[:self.max_len]  # 길이 제한
+        trg_indices = trg_indices[:self.max_len]  # 길이 제한
 
-        return torch.tensor(eng_indices, dtype=torch.long), torch.tensor(fra_indices, dtype=torch.long)
+        return torch.tensor(src_indices, dtype=torch.long), torch.tensor(trg_indices, dtype=torch.long)
 
 def collate_fn(batch):
     eng_batch, fra_batch = zip(*batch)
