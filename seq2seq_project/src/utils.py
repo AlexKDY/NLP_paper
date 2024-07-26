@@ -1,4 +1,3 @@
-import os
 import re
 from collections import Counter
 from typing import List, Tuple, Dict
@@ -109,29 +108,12 @@ class Seq2SeqDataset(Dataset):
 
         return torch.tensor(src_indices, dtype=torch.long), torch.tensor(trg_indices, dtype=torch.long)
 
-def collate_fn(batch):
-    eng_batch, fra_batch = zip(*batch)
-    eng_batch = pad_sequence(eng_batch, batch_first=True, padding_value=0)
-    fra_batch = pad_sequence(fra_batch, batch_first=True, padding_value=0)
-    return eng_batch, fra_batch
+    @staticmethod
+    def collate_fn(batch):
+        src_batch, trg_batch = zip(*batch)
+        src_batch = pad_sequence(src_batch, batch_first=True, padding_value=0)
+        trg_batch = pad_sequence(trg_batch, batch_first=True, padding_value=0)
+        src_lengths = [len(seq) for seq in src_batch]
+        trg_lengths = [len(seq) for seq in trg_batch]
 
-if __name__ == '__main__':
-    current_dir = os.path.dirname(__file__)
-    input_path = os.path.join(current_dir, '..', 'dataset', 'eng-fra.txt')    
-    # DataReader를 사용하여 데이터를 읽어옵니다.
-    data_reader = DataReader(input_path, reverse=False)
-    data = data_reader.get_data()
-    word2index = data_reader.get_word2index()
-    index2word = data_reader.get_index2word()
-
-    # Seq2SeqDataset을 생성합니다.
-    dataset = Seq2SeqDataset(data, word2index)
-
-    # DataLoader를 생성합니다.
-    dataloader = DataLoader(dataset, batch_size=32, shuffle=True, collate_fn=collate_fn)
-
-    # 예시: DataLoader에서 배치 하나를 가져와 봅니다.
-    for eng_batch, fra_batch in dataloader:
-        print("English batch:", eng_batch)
-        print("French batch:", fra_batch)
-        break
+        return src_batch, trg_batch, src_lengths, trg_lengths
